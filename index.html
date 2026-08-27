@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nexviro — Bygg. Uppgradera. Dominera.</title>
+<meta name="description" content="Nexviro bygger, uppgraderar och återställer din dator. Datorbyggen från 500 kr, Windows 11 Pro-installation 80 kr, återställning 200 kr." />
+<link rel="icon" type="image/png" href="logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600&family=Chakra+Petch:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#04060c;
+  --bg2:#070b16;
+  --panel:#0a0f1e;
+  --line:rgba(120,160,255,.14);
+  --blue:#2f7bff;
+  --blue-hi:#5ea0ff;
+  --blue-deep:#0f3aa8;
+  --silver:#c9d4e8;
+  --txt:#e8eefb;
+  --muted:#8b97b4;
+  --display:'Unbounded',sans-serif;
+  --body:'Outfit',sans-serif;
+  --mono:'Chakra Petch',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:auto}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:var(--body);
+  font-weight:300;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  cursor:default;
+}
+::selection{background:var(--blue);color:#fff}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--blue-deep),var(--blue));border-radius:6px}
+
+/* ---------- grain ---------- */
+.grain{
+  position:fixed;inset:-50%;width:200%;height:200%;
+  pointer-events:none;z-index:200;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 8s steps(10) infinite;
+}
+@keyframes grain{
+  0%,100%{transform:translate(0,0)}10%{transform:translate(-5%,-8%)}
+  30%{transform:translate(3%,-5%)}50%{transform:translate(-8%,3%)}
+  70%{transform:translate(6%,8%)}90%{transform:translate(-3%,5%)}
+}
+
+/* ---------- preloader ---------- */
+#preloader{
+  position:fixed;inset:0;z-index:300;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:28px;
+}
+#preloader img{width:150px;filter:drop-shadow(0 0 40px rgba(47,123,255,.5));animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.05);opacity:1}}
+.pre-bar{width:180px;height:1px;background:rgba(255,255,255,.08);overflow:hidden}
+.pre-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue-deep),var(--blue-hi))}
+.pre-tag{font-family:var(--mono);font-size:11px;letter-spacing:.5em;color:var(--muted);text-transform:uppercase}
+
+/* ---------- nav ---------- */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 5vw;
+  transition:background .4s,backdrop-filter .4s,border-color .4s;
+  border-bottom:1px solid transparent;
+}
+nav.scrolled{background:rgba(4,6,12,.72);backdrop-filter:blur(18px);border-color:var(--line)}
+.nav-brand{display:flex;align-items:center;gap:14px;text-decoration:none}
+.nav-brand img{width:38px;filter:drop-shadow(0 0 12px rgba(47,123,255,.6));mix-blend-mode:screen}
+.nav-brand span{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--txt)}
+.nav-brand span em{font-style:normal;color:var(--blue-hi)}
+.nav-links{display:flex;gap:36px;align-items:center}
+.nav-links a{
+  font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;position:relative;transition:color .3s;
+}
+.nav-links a::after{
+  content:'';position:absolute;left:0;bottom:-6px;width:0;height:1px;
+  background:var(--blue-hi);transition:width .35s cubic-bezier(.65,0,.35,1);
+}
+.nav-links a:hover{color:var(--txt)}
+.nav-links a:hover::after{width:100%}
+.nav-cta{
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:#fff!important;padding:11px 22px;border:1px solid rgba(94,160,255,.4);
+  border-radius:100px;background:rgba(47,123,255,.08);
+  transition:background .3s,box-shadow .3s,transform .3s!important;
+}
+.nav-cta:hover{background:rgba(47,123,255,.22);box-shadow:0 0 30px rgba(47,123,255,.35);transform:translateY(-1px)}
+.nav-cta::after{display:none}
+@media(max-width:760px){.nav-links a:not(.nav-cta){display:none}}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;min-height:100vh;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:0 5vw 130px;overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 75% 40%,rgba(47,123,255,.16),transparent 65%),
+    radial-gradient(ellipse 40% 40% at 15% 85%,rgba(15,58,168,.14),transparent 60%);
+}
+.hero-grid{
+  position:absolute;inset:0;z-index:0;opacity:.5;
+  background-image:linear-gradient(rgba(94,160,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(94,160,255,.05) 1px,transparent 1px);
+  background-size:72px 72px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 45%,#000 30%,transparent 75%);
+}
+.hero-logo{
+  position:absolute;right:2vw;top:50%;z-index:0;
+  width:min(46vw,620px);transform:translateY(-50%);
+  opacity:.92;pointer-events:none;
+  filter:drop-shadow(0 0 80px rgba(47,123,255,.35));
+  mix-blend-mode:screen;
+  will-change:transform;
+}
+.hero-content{position:relative;z-index:2;max-width:1100px}
+.hero-kicker{
+  display:flex;align-items:center;gap:16px;margin-bottom:34px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.4em;text-transform:uppercase;color:var(--blue-hi);
+}
+.hero-kicker::before{content:'';width:48px;height:1px;background:var(--blue)}
+h1{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(2.1rem,6vw,5.2rem);
+  line-height:1.02;letter-spacing:-.01em;text-transform:uppercase;
+}
+h1 .line{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em;white-space:nowrap}
+h1 .line-inner{display:inline-block;will-change:transform}
+h1 .outline{
+  color:transparent;
+  -webkit-text-stroke:1.5px rgba(201,212,232,.65);
+}
+h1 .accent{
+  background:linear-gradient(100deg,#7eb2ff 0%,var(--blue) 45%,#9fc4ff 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(47,123,255,.45));
+}
+.hero-sub{
+  margin-top:38px;max-width:520px;
+  font-size:clamp(.95rem,1.3vw,1.1rem);line-height:1.75;color:var(--muted);
+}
+.hero-actions{display:flex;gap:18px;margin-top:44px;flex-wrap:wrap}
+.btn{
+  font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+  text-decoration:none;padding:17px 34px;border-radius:100px;
+  position:relative;overflow:hidden;transition:transform .35s cubic-bezier(.34,1.56,.64,1),box-shadow .35s;
+  display:inline-flex;align-items:center;gap:10px;
+}
+.btn:hover{transform:translateY(-3px)}
+.btn-solid{
+  color:#fff;background:linear-gradient(120deg,var(--blue-deep),var(--blue));
+  box-shadow:0 8px 32px rgba(47,123,255,.35);
+}
+.btn-solid:hover{box-shadow:0 14px 44px rgba(47,123,255,.55)}
+.btn-ghost{color:var(--silver);border:1px solid rgba(201,212,232,.25)}
+.btn-ghost:hover{border-color:var(--blue-hi);color:#fff;box-shadow:0 0 26px rgba(47,123,255,.2)}
+.hero-scroll{
+  position:absolute;bottom:34px;left:5vw;z-index:2;
+  display:flex;align-items:center;gap:14px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--muted);
+}
+.hero-scroll .wheel{width:1px;height:44px;background:rgba(139,151,180,.3);position:relative;overflow:hidden}
+.hero-scroll .wheel::after{
+  content:'';position:absolute;top:0;left:0;width:100%;height:14px;background:var(--blue-hi);
+  animation:scrollhint 2s cubic-bezier(.65,0,.35,1) infinite;
+}
+@keyframes scrollhint{0%{transform:translateY(-16px)}100%{transform:translateY(48px)}}
+.hero-price-chip{
+  position:absolute;bottom:34px;right:5vw;z-index:2;text-align:right;
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+}
+.hero-price-chip b{display:block;font-family:var(--display);font-size:20px;color:var(--txt);letter-spacing:0;margin-top:6px}
+@media(max-width:900px){
+  h1{font-size:clamp(1.5rem,7.4vw,2.6rem)}
+  .hero-logo{opacity:.1;width:80vw;right:-10vw}
+  .hero-price-chip{display:none}
+}
+
+/* ---------- marquee ---------- */
+.marquee{
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:26px 0;overflow:hidden;background:var(--bg2);
+  white-space:nowrap;
+}
+.marquee-track{display:inline-flex;animation:marquee 40s linear infinite;will-change:transform}
+.marquee-track span{
+  font-family:var(--display);font-weight:500;font-size:clamp(1rem,2vw,1.5rem);
+  letter-spacing:.3em;text-transform:uppercase;color:rgba(201,212,232,.35);
+  padding:0 34px;display:inline-flex;align-items:center;gap:34px;
+}
+.marquee-track span i{font-style:normal;color:var(--blue);font-size:.6em}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* ---------- sections ---------- */
+section{padding:130px 5vw;position:relative}
+.sec-head{max-width:1200px;margin:0 auto 74px}
+.sec-kicker{
+  font-family:var(--mono);font-size:12px;letter-spacing:.4em;text-transform:uppercase;
+  color:var(--blue-hi);display:flex;align-items:center;gap:16px;margin-bottom:22px;
+}
+.sec-kicker::before{content:'';width:36px;height:1px;background:var(--blue)}
+h2{
+  font-family:var(--display);font-weight:700;text-transform:uppercase;
+  font-size:clamp(1.5rem,3.4vw,2.6rem);line-height:1.15;letter-spacing:0;
+}
+h2 .thin{font-weight:300;color:var(--muted)}
+
+/* ---------- services / chapters ---------- */
+.chapters{max-width:1200px;margin:0 auto;display:flex;flex-direction:column}
+.chapter{
+  display:grid;grid-template-columns:110px 1fr 1.1fr;gap:5vw;align-items:center;
+  padding:56px 0;border-top:1px solid var(--line);position:relative;
+  transition:padding .45s cubic-bezier(.65,0,.35,1);
+}
+.chapter:last-child{border-bottom:1px solid var(--line)}
+.chapter:hover{padding-left:14px}
+.chapter::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:linear-gradient(var(--blue-hi),var(--blue-deep));
+  transform:scaleY(0);transform-origin:top;transition:transform .5s cubic-bezier(.65,0,.35,1);
+}
+.chapter:hover::before{transform:scaleY(1)}
+.ch-num{
+  font-family:var(--display);font-weight:900;font-size:clamp(2.2rem,4.4vw,3.6rem);
+  color:transparent;-webkit-text-stroke:1px rgba(94,160,255,.4);
+  transition:color .4s,-webkit-text-stroke .4s;
+}
+.chapter:hover .ch-num{color:rgba(47,123,255,.9);-webkit-text-stroke:1px transparent}
+.ch-info h3{
+  font-family:var(--display);font-weight:500;font-size:clamp(1.05rem,1.9vw,1.5rem);
+  text-transform:uppercase;letter-spacing:.02em;margin-bottom:14px;
+}
+.ch-info p{color:var(--muted);font-size:.95rem;line-height:1.7;max-width:420px}
+.ch-prices{display:flex;flex-direction:column;gap:12px;justify-self:end;width:100%;max-width:440px}
+.price-row{
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
+  padding:16px 22px;border:1px solid var(--line);border-radius:14px;
+  background:rgba(10,15,30,.55);backdrop-filter:blur(8px);
+  transition:border-color .35s,background .35s,transform .35s;
+}
+.price-row:hover{border-color:rgba(94,160,255,.45);background:rgba(47,123,255,.08);transform:translateX(-6px)}
+.price-row .pl{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--silver)}
+.price-row .pv{
+  font-family:var(--display);font-weight:700;font-size:clamp(1.1rem,2vw,1.5rem);
+  background:linear-gradient(100deg,#8db8ff,var(--blue));
+  -webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap;
+}
+@media(max-width:900px){
+  .chapter{grid-template-columns:1fr;gap:26px}
+  .ch-prices{justify-self:stretch;max-width:none}
+}
+
+/* ---------- manifesto ---------- */
+.manifesto{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden}
+.mani-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:6vw;align-items:center}
+.mani-logo{position:relative;display:flex;justify-content:center}
+.mani-logo img{
+  width:min(100%,420px);position:relative;z-index:1;
+  filter:drop-shadow(0 0 60px rgba(47,123,255,.4));
+  mix-blend-mode:screen;
+}
+.mani-logo::before{
+  content:'';position:absolute;inset:-20%;
+  background:radial-gradient(circle,rgba(47,123,255,.18),transparent 65%);
+}
+.mani-points{display:flex;flex-direction:column;gap:0;margin-top:40px}
+.mani-point{
+  display:flex;gap:22px;padding:24px 0;border-top:1px solid var(--line);align-items:baseline;
+}
+.mani-point:last-child{border-bottom:1px solid var(--line)}
+.mani-point .mp-num{font-family:var(--mono);font-size:12px;color:var(--blue-hi);letter-spacing:.2em}
+.mani-point h4{font-family:var(--display);font-weight:500;font-size:.95rem;text-transform:uppercase;margin-bottom:8px;letter-spacing:.04em}
+.mani-point p{color:var(--muted);font-size:.9rem;line-height:1.65}
+@media(max-width:900px){.mani-inner{grid-template-columns:1fr}}
+
+/* ---------- contact ---------- */
+.contact{text-align:center;padding:160px 5vw}
+.contact .sec-kicker{justify-content:center}
+.contact .sec-kicker::after{content:'';width:36px;height:1px;background:var(--blue)}
+.contact h2{margin-bottom:26px}
+.contact p{color:var(--muted);max-width:520px;margin:0 auto 56px;line-height:1.75;font-size:1rem}
+.email-link{
+  display:inline-block;font-family:var(--display);font-weight:700;
+  font-size:clamp(1rem,3.4vw,2.4rem);color:var(--txt);text-decoration:none;
+  position:relative;padding-bottom:12px;letter-spacing:-.01em;
+  transition:color .35s;word-break:break-all;
+}
+.email-link::after{
+  content:'';position:absolute;left:0;bottom:0;width:100%;height:2px;
+  background:linear-gradient(90deg,var(--blue-deep),var(--blue-hi));
+  transform:scaleX(.25);transform-origin:left;transition:transform .5s cubic-bezier(.65,0,.35,1);
+}
+.email-link:hover{color:var(--blue-hi)}
+.email-link:hover::after{transform:scaleX(1)}
+.contact-or{
+  margin:52px auto 0;font-family:var(--mono);font-size:11px;letter-spacing:.35em;
+  text-transform:uppercase;color:var(--muted);
+}
+
+/* ---------- footer ---------- */
+footer{
+  border-top:1px solid var(--line);padding:44px 5vw;
+  display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;
+  background:var(--bg2);
+}
+footer .f-brand{display:flex;align-items:center;gap:12px}
+footer .f-brand img{width:30px;mix-blend-mode:screen}
+footer .f-brand span{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.14em}
+footer p{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+footer .f-tag{color:var(--blue-hi)}
+
+/* ---------- gallery ---------- */
+.gal-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.25fr 1fr;grid-template-rows:310px 310px;gap:22px}
+.gal-item{position:relative;overflow:hidden;border-radius:18px;border:1px solid var(--line)}
+.gal-item:first-child{grid-row:span 2}
+.gal-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s cubic-bezier(.22,1,.36,1),filter .8s;filter:saturate(.92)}
+.gal-item:hover img{transform:scale(1.06);filter:saturate(1.1)}
+.gal-item::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 52%,rgba(4,6,12,.88));pointer-events:none}
+.gal-cap{position:absolute;left:22px;bottom:18px;z-index:2;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--silver)}
+.gal-cap b{display:block;font-family:var(--display);font-size:15px;letter-spacing:.04em;color:#fff;margin-top:7px;text-transform:none;font-weight:500}
+.gal-tag{
+  position:absolute;top:16px;right:16px;z-index:2;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-hi);
+  background:rgba(4,6,12,.6);backdrop-filter:blur(8px);border:1px solid rgba(94,160,255,.3);
+  padding:7px 13px;border-radius:100px;
+}
+@media(max-width:900px){.gal-grid{grid-template-columns:1fr;grid-template-rows:repeat(3,300px)}.gal-item:first-child{grid-row:auto}}
+
+/* ---------- testimonials ---------- */
+.quotes{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.quote-card{
+  position:relative;padding:34px 30px 30px;border:1px solid var(--line);border-radius:18px;
+  background:rgba(10,15,30,.55);backdrop-filter:blur(8px);
+  transition:transform .4s,border-color .4s,box-shadow .4s;
+}
+.quote-card:hover{transform:translateY(-6px);border-color:rgba(94,160,255,.4);box-shadow:0 20px 50px rgba(2,8,30,.6)}
+.quote-card .qm{font-family:var(--display);font-size:50px;line-height:.8;color:var(--blue);opacity:.85}
+.quote-card>p{color:var(--silver);font-size:.95rem;line-height:1.7;margin:16px 0 26px}
+.quote-who b{font-family:var(--display);font-weight:500;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;display:block}
+.quote-who span{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-hi);display:block;margin-top:6px}
+@media(max-width:900px){.quotes{grid-template-columns:1fr}}
+
+/* ---------- contact grid + booking form ---------- */
+.contact-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1.15fr;gap:5vw;align-items:start;text-align:left}
+.contact-side .email-link{font-size:clamp(.95rem,1.9vw,1.45rem)}
+.contact-note-side{margin-top:26px;color:var(--muted);font-size:.9rem;line-height:1.7;max-width:380px}
+.ig-link{
+  display:inline-flex;align-items:center;gap:12px;margin-top:30px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--silver);text-decoration:none;border:1px solid rgba(201,212,232,.25);
+  border-radius:100px;padding:14px 26px;
+  transition:border-color .3s,color .3s,box-shadow .3s,transform .3s;
+}
+.ig-link:hover{border-color:var(--blue-hi);color:#fff;box-shadow:0 0 26px rgba(47,123,255,.25);transform:translateY(-2px)}
+.ig-link svg{width:17px;height:17px}
+.booking-form{
+  border:1px solid var(--line);border-radius:20px;background:rgba(10,15,30,.6);
+  backdrop-filter:blur(10px);padding:38px 34px;
+}
+.booking-form h3{font-family:var(--display);font-weight:500;font-size:1.05rem;text-transform:uppercase;margin-bottom:10px}
+.booking-form>p{color:var(--muted);font-size:.88rem;margin-bottom:26px;line-height:1.65}
+.field{margin-bottom:18px}
+.field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.field input,.field select,.field textarea{
+  width:100%;background:rgba(4,6,12,.7);border:1px solid var(--line);border-radius:12px;
+  color:var(--txt);font-family:var(--body);font-size:.95rem;font-weight:300;
+  padding:14px 16px;outline:none;transition:border-color .3s,box-shadow .3s;
+}
+.field textarea{min-height:110px;resize:vertical}
+.field select{
+  appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b97b4' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 16px center;
+}
+.field select:invalid{color:var(--muted)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,123,255,.15)}
+.form-submit{width:100%;justify-content:center;cursor:pointer;border:none;font-size:12px}
+.form-submit:disabled{opacity:.6;cursor:wait;transform:none}
+.form-status{margin-top:16px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;min-height:16px;line-height:1.6}
+.form-status.ok{color:#5eeaa0}
+.form-status.err{color:#ff7d7d}
+@media(max-width:900px){.contact-grid{grid-template-columns:1fr}}
+
+/* ---------- footer links ---------- */
+.f-links{display:flex;gap:26px}
+.f-links a{
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;transition:color .3s;
+}
+.f-links a:hover{color:var(--blue-hi)}
+
+/* ---------- reveal defaults ---------- */
+.reveal{opacity:0;transform:translateY(56px)}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<!-- Preloader -->
+<div id="preloader" data-testid="preloader">
+  <img src="logo-t.png" alt="Nexviro logotyp" />
+  <div class="pre-bar"><span id="pre-fill"></span></div>
+  <div class="pre-tag">Laddar system</div>
+</div>
+
+<!-- Nav -->
+<nav id="nav" data-testid="main-nav">
+  <a class="nav-brand" href="#top" data-testid="nav-brand-link">
+    <img src="logo-t.png" alt="Nexviro" />
+    <span>NEX<em>VIRO</em></span>
+  </a>
+  <div class="nav-links">
+    <a href="#tjanster" data-testid="nav-services-link">Tjänster</a>
+    <a href="#galleri" data-testid="nav-gallery-link">Galleri</a>
+    <a href="#omdomen" data-testid="nav-reviews-link">Omdömen</a>
+    <a href="#om" data-testid="nav-about-link">Om oss</a>
+    <a href="#kontakt" class="nav-cta" data-testid="nav-contact-cta">Boka nu</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero" id="top" data-testid="hero-section">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <img class="hero-logo" id="hero-logo" src="logo-t.png" alt="" aria-hidden="true" />
+  <div class="hero-content">
+    <div class="hero-kicker reveal-hero">Datorservice · Sverige</div>
+    <h1 data-testid="hero-heading">
+      <span class="line"><span class="line-inner">Vi bygger.</span></span>
+      <span class="line"><span class="line-inner outline">Vi uppgraderar.</span></span>
+      <span class="line"><span class="line-inner accent">Du dominerar.</span></span>
+    </h1>
+    <p class="hero-sub reveal-hero" data-testid="hero-subtext">
+      Nexviro bygger din drömdator, installerar Windows 11 Pro, återställer trötta system
+      och uppgraderar din setup — snabbt, noggrant och till ett pris som alla har råd med.
+    </p>
+    <div class="hero-actions reveal-hero">
+      <a href="#tjanster" class="btn btn-solid" data-testid="hero-services-btn">Se tjänster &amp; priser</a>
+      <a href="#kontakt" class="btn btn-ghost" data-testid="hero-contact-btn">Kontakta oss</a>
+    </div>
+  </div>
+  <div class="hero-scroll" data-testid="hero-scroll-hint">
+    <div class="wheel"></div><span>Scrolla</span>
+  </div>
+  <div class="hero-price-chip reveal-hero">
+    Bygg från<b>500 kr</b>
+  </div>
+</header>
+
+<!-- Marquee -->
+<div class="marquee" data-testid="marquee" aria-hidden="true">
+  <div class="marquee-track" id="marquee-track">
+    <span>Bygg <i>◆</i> Uppgradera <i>◆</i> Dominera <i>◆</i> Nexviro <i>◆</i></span>
+    <span>Bygg <i>◆</i> Uppgradera <i>◆</i> Dominera <i>◆</i> Nexviro <i>◆</i></span>
+    <span>Bygg <i>◆</i> Uppgradera <i>◆</i> Dominera <i>◆</i> Nexviro <i>◆</i></span>
+    <span>Bygg <i>◆</i> Uppgradera <i>◆</i> Dominera <i>◆</i> Nexviro <i>◆</i></span>
+  </div>
+</div>
+
+<!-- Services -->
+<section id="tjanster" data-testid="services-section">
+  <div class="sec-head reveal">
+    <div class="sec-kicker">Tjänster &amp; priser</div>
+    <h2>Fyra tjänster. <span class="thin">Noll krångel.</span></h2>
+  </div>
+  <div class="chapters">
+
+    <article class="chapter reveal" data-testid="service-build">
+      <div class="ch-num">01</div>
+      <div class="ch-info">
+        <h3>Datorbygge</h3>
+        <p>Vi bygger din dator från grunden — kabeldragning, montering och finjustering. Välj standarddelar för vardag och spel, eller avancerade delar för maximal prestanda.</p>
+      </div>
+      <div class="ch-prices">
+        <div class="price-row" data-testid="price-build-standard">
+          <span class="pl">Standarddelar</span><span class="pv">500 kr</span>
+        </div>
+        <div class="price-row" data-testid="price-build-advanced">
+          <span class="pl">Avancerade delar</span><span class="pv">1000 kr</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="chapter reveal" data-testid="service-windows">
+      <div class="ch-num">02</div>
+      <div class="ch-info">
+        <h3>Windows 11 Pro</h3>
+        <p>Färsk installation av Windows 11 Pro med drivrutiner och grundinställningar — din dator känns ny igen på nolltid.</p>
+      </div>
+      <div class="ch-prices">
+        <div class="price-row" data-testid="price-windows">
+          <span class="pl">Installation</span><span class="pv">80 kr</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="chapter reveal" data-testid="service-reset">
+      <div class="ch-num">03</div>
+      <div class="ch-info">
+        <h3>Återställning</h3>
+        <p>Total återställning av din dator. Vi rensar bort skräp, virus och gamla filer — och lämnar tillbaka ett rent, snabbt system.</p>
+      </div>
+      <div class="ch-prices">
+        <div class="price-row" data-testid="price-reset">
+          <span class="pl">Återställ dator</span><span class="pv">200 kr</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="chapter reveal" data-testid="service-upgrade">
+      <div class="ch-num">04</div>
+      <div class="ch-info">
+        <h3>Uppgradering</h3>
+        <p>Andas nytt liv i din befintliga dator. Mer RAM, snabbare lagring eller nytt grafikkort — vi monterar och optimerar allt åt dig.</p>
+      </div>
+      <div class="ch-prices">
+        <div class="price-row" data-testid="price-upgrade-standard">
+          <span class="pl">Standarddelar</span><span class="pv">400 kr</span>
+        </div>
+        <div class="price-row" data-testid="price-upgrade-advanced">
+          <span class="pl">Avancerade delar</span><span class="pv">700 kr</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- Manifesto -->
+<section class="manifesto" id="om" data-testid="about-section">
+  <div class="mani-inner">
+    <div class="mani-logo reveal" id="mani-logo">
+      <img src="logo-t.png" alt="Nexviro logotyp" />
+    </div>
+    <div>
+      <div class="sec-kicker reveal">Manifest</div>
+      <h2 class="reveal">Byggt med passion. <span class="thin">Testat till det extrema.</span></h2>
+      <div class="mani-points">
+        <div class="mani-point reveal" data-testid="manifesto-point-1">
+          <span class="mp-num">/01</span>
+          <div>
+            <h4>Precision i varje detalj</h4>
+            <p>Varje bygge monteras med omsorg — perfekt kabeldragning, rätt kylning och stabila inställningar från start.</p>
+          </div>
+        </div>
+        <div class="mani-point reveal" data-testid="manifesto-point-2">
+          <span class="mp-num">/02</span>
+          <div>
+            <h4>Ärliga priser</h4>
+            <p>Inga dolda avgifter. Du vet exakt vad du betalar innan vi ens skruvar loss en panel.</p>
+          </div>
+        </div>
+        <div class="mani-point reveal" data-testid="manifesto-point-3">
+          <span class="mp-num">/03</span>
+          <div>
+            <h4>Snabb leverans</h4>
+            <p>De flesta jobb är klara inom några dagar. Din dator ska vara hos dig — inte hos oss.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Gallery -->
+<section class="gallery" id="galleri" data-testid="gallery-section">
+  <div class="sec-head reveal">
+    <div class="sec-kicker">Galleri</div>
+    <h2>Byggen som talar <span class="thin">för sig själva.</span></h2>
+  </div>
+  <div class="gal-grid">
+    <figure class="gal-item reveal" data-testid="gallery-item-1">
+      <img src="gallery-1.webp" alt="RGB-datorbygge i Corsair-chassi byggt av Nexviro" loading="lazy" />
+      <span class="gal-tag">Kundbygge</span>
+      <figcaption class="gal-cap">Build 01<b>Full RGB-setup</b></figcaption>
+    </figure>
+    <figure class="gal-item reveal" data-testid="gallery-item-2">
+      <img src="gallery-2.webp" alt="Datorbygge med isblå RGB-belysning byggt av Nexviro" loading="lazy" />
+      <span class="gal-tag">Kundbygge</span>
+      <figcaption class="gal-cap">Build 02<b>Nattläge — isblå RGB</b></figcaption>
+    </figure>
+    <figure class="gal-item reveal" data-testid="gallery-item-3">
+      <img src="gallery-3.png" alt="Vitt datorbygge i Zalman-chassi byggt av Nexviro" loading="lazy" />
+      <span class="gal-tag">Kundbygge</span>
+      <figcaption class="gal-cap">Build 03<b>Vitt stealth-bygge</b></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="omdome" id="omdomen" data-testid="testimonials-section">
+  <div class="sec-head reveal">
+    <div class="sec-kicker">Omdömen</div>
+    <h2>Nöjda kunder. <span class="thin">Dominanta datorer.</span></h2>
+  </div>
+  <div class="quotes">
+    <article class="quote-card reveal" data-testid="quote-1">
+      <div class="qm">”</div>
+      <p>Nexviro byggde min första gamingdator — kabeldragningen är ett konstverk och den är tyst som en visning. Rekommenderas varmt!</p>
+      <div class="quote-who"><b>Marcus L.</b><span>Datorbygge</span></div>
+    </article>
+    <article class="quote-card reveal" data-testid="quote-2">
+      <div class="qm">”</div>
+      <p>Min dator var seg och full av skräp. Efter återställning och en färsk Windows-installation känns den helt ny. Snabbt och billigt!</p>
+      <div class="quote-who"><b>Elin S.</b><span>Återställning + Windows 11 Pro</span></div>
+    </article>
+    <article class="quote-card reveal" data-testid="quote-3">
+      <div class="qm">”</div>
+      <p>Uppgraderade RAM och grafikkort genom Nexviro. Ärliga råd, schysst pris och allt funkade direkt när jag kom hem.</p>
+      <div class="quote-who"><b>Arvid K.</b><span>Uppgradering</span></div>
+    </article>
+  </div>
+</section>
+
+<!-- Contact + Booking -->
+<section class="contact" id="kontakt" data-testid="contact-section">
+  <div class="sec-kicker reveal">Kontakt &amp; bokning</div>
+  <h2 class="reveal">Redo att dominera?</h2>
+  <p class="reveal">Fyll i formuläret så landar din förfrågan direkt i vår inkorg — eller maila/dm:a oss. Vi svarar snabbt.</p>
+  <div class="contact-grid">
+    <div class="contact-side reveal">
+      <a class="email-link" href="mailto:Nexvirodatorer46@gmail.com" data-testid="contact-email-link">Nexvirodatorer46@gmail.com</a>
+      <p class="contact-note-side">Följ oss på Instagram för fler byggen, före/efter-bilder och kommande erbjudanden.</p>
+      <a class="ig-link" href="https://www.instagram.com/nexviro46datorer/" target="_blank" rel="noopener" data-testid="contact-instagram-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="0.6" fill="currentColor" stroke="none"/></svg>
+        @nexviro46datorer
+      </a>
+    </div>
+    <form class="booking-form reveal" id="booking-form" data-testid="booking-form" novalidate>
+      <h3>Boka din tjänst</h3>
+      <p>Beskriv vad du behöver — vi återkommer med tid och detaljer. Ingen förskottsbetalning.</p>
+      <div class="field">
+        <label for="bf-name">Namn</label>
+        <input id="bf-name" type="text" required maxlength="120" placeholder="Ditt namn" data-testid="booking-name-input" />
+      </div>
+      <div class="field">
+        <label for="bf-email">E-post</label>
+        <input id="bf-email" type="email" required placeholder="din@mail.se" data-testid="booking-email-input" />
+      </div>
+      <div class="field">
+        <label for="bf-service">Tjänst</label>
+        <select id="bf-service" required data-testid="booking-service-select">
+          <option value="" disabled selected>Välj tjänst…</option>
+          <option>Datorbygge – Standarddelar (500 kr)</option>
+          <option>Datorbygge – Avancerade delar (1000 kr)</option>
+          <option>Windows 11 Pro-installation (80 kr)</option>
+          <option>Återställning av dator (200 kr)</option>
+          <option>Uppgradering – Standarddelar (400 kr)</option>
+          <option>Uppgradering – Avancerade delar (700 kr)</option>
+          <option>Annat / Osäker</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="bf-msg">Meddelande</label>
+        <textarea id="bf-msg" required maxlength="2000" placeholder="Berätta om din dator och vad du behöver hjälp med…" data-testid="booking-message-input"></textarea>
+      </div>
+      <button type="submit" class="btn btn-solid form-submit" id="booking-submit" data-testid="booking-submit">Skicka förfrågan</button>
+      <div class="form-status" id="form-status" data-testid="form-status" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer data-testid="footer">
+  <div class="f-brand">
+    <img src="logo-t.png" alt="Nexviro" />
+    <span>NEXVIRO</span>
+  </div>
+  <div class="f-links">
+    <a href="https://www.instagram.com/nexviro46datorer/" target="_blank" rel="noopener" data-testid="footer-instagram-link">Instagram</a>
+    <a href="mailto:Nexvirodatorer46@gmail.com" data-testid="footer-email-link">E-post</a>
+  </div>
+  <p>© 2026 Nexviro · <span class="f-tag">Build · Upgrade · Dominate</span></p>
+</footer>
+
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* Lenis smooth scroll */
+const lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 1 });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((t) => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+/* Anchor links via Lenis */
+document.querySelectorAll('a[href^="#"]').forEach((a) => {
+  a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length > 1 && document.querySelector(id)) {
+      e.preventDefault();
+      lenis.scrollTo(id, { offset: -70, duration: 1.4 });
+    }
+  });
+});
+
+/* Preloader + hero intro */
+const intro = gsap.timeline({ paused: true });
+intro
+  .to('#preloader', { opacity: 0, duration: 0.6, ease: 'power2.inOut' })
+  .set('#preloader', { display: 'none' })
+  .from('.line-inner', { yPercent: 115, duration: 1.15, stagger: 0.14, ease: 'power4.out' }, '-=0.25')
+  .from('.reveal-hero', { y: 36, opacity: 0, duration: 0.9, stagger: 0.12, ease: 'power3.out' }, '-=0.7')
+  .from('#hero-logo', { opacity: 0, scale: 0.86, duration: 1.4, ease: 'power3.out' }, '-=1.1')
+  .from('#nav', { y: -40, opacity: 0, duration: 0.7, ease: 'power3.out' }, '-=1');
+
+gsap.to('#pre-fill', {
+  width: '100%', duration: 1, ease: 'power2.inOut',
+  onComplete: () => intro.play()
+});
+
+/* Nav scroll state */
+const nav = document.getElementById('nav');
+lenis.on('scroll', ({ scroll }) => {
+  nav.classList.toggle('scrolled', scroll > 40);
+});
+
+/* Hero logo: scroll parallax + mouse drift */
+gsap.to('#hero-logo', {
+  yPercent: -22, ease: 'none',
+  scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 1.2 }
+});
+const qx = gsap.quickTo('#hero-logo', 'x', { duration: 1.2, ease: 'power3' });
+const qr = gsap.quickTo('#hero-logo', 'rotation', { duration: 1.6, ease: 'power3' });
+window.addEventListener('mousemove', (e) => {
+  const nx = (e.clientX / window.innerWidth - 0.5);
+  qx(nx * 34);
+  qr(nx * 3);
+});
+
+/* Section reveals */
+document.querySelectorAll('.reveal').forEach((el) => {
+  gsap.to(el, {
+    opacity: 1, y: 0, duration: 1.1, ease: 'power3.out',
+    scrollTrigger: { trigger: el, start: 'top 88%', once: true }
+  });
+});
+
+/* Manifesto logo slow float + parallax */
+gsap.to('#mani-logo img', { y: -14, duration: 3.2, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+gsap.to('#mani-logo', {
+  yPercent: 8, ease: 'none',
+  scrollTrigger: { trigger: '.manifesto', start: 'top bottom', end: 'bottom top', scrub: 1.4 }
+});
+
+/* Marquee speeds up slightly on scroll velocity */
+let baseSpeed = 1;
+lenis.on('scroll', ({ velocity }) => {
+  baseSpeed = 1 + Math.min(Math.abs(velocity) * 0.05, 1.6);
+  document.getElementById('marquee-track').style.animationDuration = (40 / baseSpeed) + 's';
+});
+
+/* Booking form — tre sätt att skicka:
+   1) /api/booking (live-sidan på Emergent)
+   2) Web3Forms (GitHub Pages / statisk hosting) — klistra in din nyckel nedan
+   3) Fallback: öppnar besökarens mail-app med allt förifyllt */
+const WEB3FORMS_KEY = 'f10e0303-76d4-4c5d-bc63-6ba1035fec25';
+const bookingForm = document.getElementById('booking-form');
+bookingForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('booking-submit');
+  const status = document.getElementById('form-status');
+  const name = document.getElementById('bf-name').value.trim();
+  const email = document.getElementById('bf-email').value.trim();
+  const service = document.getElementById('bf-service').value;
+  const message = document.getElementById('bf-msg').value.trim();
+  status.className = 'form-status';
+  if (!name || !email || !service || !message) {
+    status.classList.add('err');
+    status.textContent = 'Fyll i alla fält innan du skickar.';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Skickar…';
+  status.textContent = '';
+  const success = () => {
+    status.classList.add('ok');
+    status.textContent = 'Tack! Din förfrågan är skickad — vi hör av oss inom kort.';
+    bookingForm.reset();
+  };
+  const mailtoFallback = () => {
+    const mailto = 'mailto:Nexvirodatorer46@gmail.com'
+      + '?subject=' + encodeURIComponent('Bokningsförfrågan – ' + service)
+      + '&body=' + encodeURIComponent('Namn: ' + name + '\nE-post: ' + email + '\nTjänst: ' + service + '\n\nMeddelande:\n' + message);
+    status.classList.add('err');
+    status.innerHTML = 'Kunde inte skicka automatiskt härifrån — <a href="' + mailto + '" style="color:#5ea0ff;text-decoration:underline">klicka här för att skicka via din mail-app istället</a>.';
+  };
+  try {
+    const res = await fetch('/api/booking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, service, message })
+    });
+    if (!res.ok) throw new Error('api failed');
+    success();
+  } catch (err) {
+    try {
+      if (WEB3FORMS_KEY.startsWith('KLISTRA_IN')) throw new Error('no key');
+      const fd = new FormData();
+      fd.append('access_key', WEB3FORMS_KEY);
+      fd.append('subject', 'Ny bokningsförfrågan – ' + service);
+      fd.append('from_name', 'Nexviro-webbplatsen');
+      fd.append('botcheck', '');
+      fd.append('name', name);
+      fd.append('email', email);
+      fd.append('service', service);
+      fd.append('message', message);
+      const w3 = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
+      const body = await w3.json();
+      if (!w3.ok || body.success === false) throw new Error('web3forms failed');
+      success();
+    } catch (err2) {
+      mailtoFallback();
+    }
+  }
+  btn.disabled = false;
+  btn.textContent = 'Skicka förfrågan';
+});
+</script>
+</body>
+</html>
